@@ -149,17 +149,41 @@ export const authAPI = {
     first_name?: string;
     last_name?: string;
   }) => {
-    return apiRequest<{ user: any; access: string; refresh: string }>('/auth/register/', {
+    // Don't use apiRequest for registration - no auth token needed
+    const response = await fetch(`${API_BASE_URL}/auth/register/`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(data),
     });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: response.statusText }));
+      const apiError: any = new Error(error.error || error.detail || 'Registration failed');
+      apiError.errors = error.errors;
+      throw apiError;
+    }
+
+    return response.json();
   },
 
   login: async (username: string, password: string) => {
-    return apiRequest<{ access: string; refresh: string }>('/auth/login/', {
+    // Don't use apiRequest for login - no auth token needed
+    const response = await fetch(`${API_BASE_URL}/auth/login/`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ username, password }),
     });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: response.statusText }));
+      throw new Error(error.detail || 'Login failed');
+    }
+
+    return response.json();
   },
 };
 
@@ -305,7 +329,7 @@ export const issueAPI = {
       if (params?.scope) queryParams.append('scope', params.scope);
       if (params?.status) queryParams.append('status', params.status);
       if (params?.sort_by) queryParams.append('sort_by', params.sort_by);
-      if (params?.search) queryParams.append('search', params.search);
+      if (params?.search && params.search.trim()) queryParams.append('search', params.search.trim());
 
       const url = `/issues/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await apiRequest<{

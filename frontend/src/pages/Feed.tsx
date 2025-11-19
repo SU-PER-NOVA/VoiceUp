@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { IssueCard } from "@/components/IssueCard";
 import { FilterSidebar } from "@/components/FilterSidebar";
@@ -8,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { issueAPI } from "@/lib/api";
 
 const Feed = () => {
+  const [searchParams] = useSearchParams();
   const [showFilters, setShowFilters] = useState(false);
   const [issues, setIssues] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,8 +20,20 @@ const Feed = () => {
     city: null as number | null,
     scope: null as string | null,
     sort_by: 'trending' as 'trending' | 'recent' | 'votes' | 'comments',
+    search: '',
   });
   const { toast } = useToast();
+  
+  // Update filters when URL search params change
+  useEffect(() => {
+    const searchQuery = searchParams.get('search') || '';
+    const sortBy = searchParams.get('sort_by') as any;
+    setFilters(prev => ({
+      ...prev,
+      search: searchQuery,
+      ...(sortBy && { sort_by: sortBy }),
+    }));
+  }, [searchParams]);
 
   useEffect(() => {
     loadIssues();
@@ -36,6 +50,7 @@ const Feed = () => {
         city: filters.city || undefined,
         scope: filters.scope || undefined,
         sort_by: filters.sort_by,
+        search: filters.search || undefined,
       });
       setIssues(response.results || []);
     } catch (error: any) {

@@ -26,6 +26,23 @@ from .serializers import (
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """Custom serializer to support login with username OR email"""
+    
+    def validate(self, attrs):
+        # Check if username is actually an email
+        username_or_email = attrs.get('username', '')
+        password = attrs.get('password', '')
+        
+        # Try to find user by email if '@' is present
+        if '@' in username_or_email:
+            try:
+                user = User.objects.get(email=username_or_email)
+                attrs['username'] = user.username  # Replace email with username for JWT validation
+            except User.DoesNotExist:
+                pass  # Let the default validation handle the error
+        
+        return super().validate(attrs)
+    
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
