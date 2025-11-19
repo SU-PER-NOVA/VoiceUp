@@ -1,0 +1,29 @@
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenRefreshView
+from .views import (
+    RegisterView, CustomTokenObtainPairView,
+    UserViewSet, StateViewSet, DistrictViewSet, CityViewSet,
+    CategoryViewSet, TagViewSet, IssueViewSet,
+    MediaViewSet, CommentViewSet, SearchView
+)
+
+router = DefaultRouter()
+router.register(r'users', UserViewSet, basename='user')
+router.register(r'states', StateViewSet, basename='state')
+router.register(r'districts', DistrictViewSet, basename='district')
+router.register(r'cities', CityViewSet, basename='city')
+router.register(r'categories', CategoryViewSet, basename='category')
+router.register(r'tags', TagViewSet, basename='tag')
+router.register(r'issues', IssueViewSet, basename='issue')
+router.register(r'media', MediaViewSet, basename='media')
+router.register(r'comments', CommentViewSet, basename='comment')
+
+urlpatterns = [
+    path('auth/register/', RegisterView.as_view(), name='register'),
+    path('auth/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('search/', SearchView.as_view(), name='search'),
+    path('', include(router.urls)),
+]
+
