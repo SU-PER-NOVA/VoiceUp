@@ -3,16 +3,18 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from .models import (
     UserProfile, State, District, City, Category, Tag, Issue,
-    Media, Comment, Vote, IssueView
+    Media, Comment, Vote, IssueView, IssueAdminNote
 )
 
 
 class UserSerializer(serializers.ModelSerializer):
     """User Serializer"""
+    is_staff = serializers.BooleanField(read_only=True)
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'date_joined']
-        read_only_fields = ['id', 'date_joined']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'date_joined', 'is_staff']
+        read_only_fields = ['id', 'date_joined', 'is_staff']
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -414,6 +416,27 @@ class IssueCreateSerializer(serializers.ModelSerializer):
                 tag.save()
         
         return instance
+
+
+class IssueAdminNoteSerializer(serializers.ModelSerializer):
+    """Admin note on an issue"""
+    author_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = IssueAdminNote
+        fields = ['id', 'issue', 'author', 'author_name', 'note_type', 'content', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'author', 'created_at', 'updated_at']
+
+    def get_author_name(self, obj):
+        return obj.author.get_full_name() or obj.author.username
+
+
+class AdminIssueDetailSerializer(IssueDetailSerializer):
+    """Issue detail for admin - includes admin_notes"""
+    admin_notes = IssueAdminNoteSerializer(many=True, read_only=True)
+
+    class Meta(IssueDetailSerializer.Meta):
+        fields = IssueDetailSerializer.Meta.fields + ['admin_notes']
 
 
 class VoteSerializer(serializers.ModelSerializer):

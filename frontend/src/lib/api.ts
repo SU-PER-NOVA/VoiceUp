@@ -494,3 +494,79 @@ export const searchAPI = {
   },
 };
 
+// Current user (for is_staff check and profile)
+export const getCurrentUser = async (): Promise<{
+  id: number;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  is_staff: boolean;
+  date_joined: string;
+} | null> => {
+  if (!getAuthToken()) return null;
+  try {
+    return await apiRequest<any>('/auth/me/');
+  } catch {
+    return null;
+  }
+};
+
+// Admin API (staff only)
+export const adminAPI = {
+  getStats: async () => {
+    return apiRequest<{
+      total_issues: number;
+      by_status: Record<string, number>;
+      recent_7_days: number;
+      pending_count: number;
+    }>('/admin/stats/');
+  },
+
+  getGrievances: async (params?: {
+    page?: number;
+    status?: string;
+    search?: string;
+    ordering?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.ordering) queryParams.append('ordering', params.ordering);
+    const url = `/admin/grievances/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const data = await apiRequest<{ count: number; next: string | null; previous: string | null; results: any[] }>(url);
+    return {
+      count: data.count ?? 0,
+      next: data.next ?? null,
+      previous: data.previous ?? null,
+      results: Array.isArray(data.results) ? data.results : [],
+    };
+  },
+
+  getGrievance: async (id: number) => {
+    return apiRequest<any>(`/admin/grievances/${id}/`);
+  },
+
+  updateGrievance: async (
+    id: number,
+    patch: { status?: string; is_featured?: boolean; is_verified?: boolean }
+  ) => {
+    return apiRequest<any>(`/admin/grievances/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(patch),
+    });
+  },
+
+  getNotes: async (issueId: number) => {
+    return apiRequest<any[]>(`/admin/grievances/${issueId}/notes/`);
+  },
+
+  addNote: async (issueId: number, data: { content: string; note_type: 'internal' | 'public_response' }) => {
+    return apiRequest<any>(`/admin/grievances/${issueId}/notes/`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+};
+

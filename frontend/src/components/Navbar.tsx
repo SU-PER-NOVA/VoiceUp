@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Search, Upload, User, Menu, LogOut } from "lucide-react";
+import { Search, Upload, User, Menu, LogOut, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
-import { getAuthToken, clearAuthTokens } from "@/lib/api";
+import { getAuthToken, clearAuthTokens, getCurrentUser } from "@/lib/api";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,16 +14,19 @@ import {
 
 export const Navbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isStaff, setIsStaff] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkAuth();
+    const token = getAuthToken();
+    setIsAuthenticated(!!token);
+    if (token) {
+      getCurrentUser().then((user) => setIsStaff(!!user?.is_staff));
+    } else {
+      setIsStaff(false);
+    }
   }, []);
-
-  const checkAuth = () => {
-    setIsAuthenticated(!!getAuthToken());
-  };
 
   const handleLogout = () => {
     clearAuthTokens();
@@ -91,6 +94,14 @@ export const Navbar = () => {
                   <DropdownMenuItem onClick={() => navigate("/feed")}>
                     My Issues
                   </DropdownMenuItem>
+                  {isStaff && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin" className="flex items-center gap-2">
+                        <ShieldCheck className="h-4 w-4" />
+                        Admin
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />

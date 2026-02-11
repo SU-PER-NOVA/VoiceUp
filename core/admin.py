@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from .models import (
     UserProfile, State, District, City, Category, Tag, Issue,
-    Media, Comment, Vote, IssueView
+    Media, Comment, Vote, IssueView, IssueAdminNote
 )
 
 
@@ -93,3 +93,10 @@ class IssueViewAdmin(admin.ModelAdmin):
     list_display = ['issue', 'user', 'ip_address', 'viewed_at']
     list_filter = ['viewed_at']
     search_fields = ['issue__title', 'user__username']
+
+
+@admin.register(IssueAdminNote)
+class IssueAdminNoteAdmin(admin.ModelAdmin):
+    list_display = ['issue', 'author', 'note_type', 'created_at']
+    list_filter = ['note_type', 'created_at']
+    search_fields = ['content', 'issue__title', 'author__username']

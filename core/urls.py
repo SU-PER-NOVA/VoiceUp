@@ -2,10 +2,11 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
-    RegisterView, CustomTokenObtainPairView,
+    RegisterView, CustomTokenObtainPairView, CurrentUserView,
     UserViewSet, StateViewSet, DistrictViewSet, CityViewSet,
     CategoryViewSet, TagViewSet, IssueViewSet,
-    MediaViewSet, CommentViewSet, SearchView
+    MediaViewSet, CommentViewSet, SearchView,
+    AdminDashboardStatsView, AdminGrievanceViewSet,
 )
 
 router = DefaultRouter()
@@ -19,10 +20,16 @@ router.register(r'issues', IssueViewSet, basename='issue')
 router.register(r'media', MediaViewSet, basename='media')
 router.register(r'comments', CommentViewSet, basename='comment')
 
+admin_router = DefaultRouter()
+admin_router.register(r'grievances', AdminGrievanceViewSet, basename='admin-grievance')
+
 urlpatterns = [
     path('auth/register/', RegisterView.as_view(), name='register'),
     path('auth/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/me/', CurrentUserView.as_view(), name='current_user'),
+    path('admin/stats/', AdminDashboardStatsView.as_view(), name='admin_stats'),
+    path('admin/', include(admin_router.urls)),
     path('search/', SearchView.as_view(), name='search'),
     path('', include(router.urls)),
 ]

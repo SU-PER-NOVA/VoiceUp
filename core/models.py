@@ -280,6 +280,27 @@ class Comment(models.Model):
         return f"Comment by {self.author.username} on {self.issue.title}"
 
 
+class IssueAdminNote(models.Model):
+    """Admin notes/responses on issues - internal and optionally public"""
+    NOTE_TYPE_CHOICES = [
+        ('internal', 'Internal Note'),
+        ('public_response', 'Public Response'),
+    ]
+
+    issue = models.ForeignKey(Issue, on_delete=models.CASCADE, related_name='admin_notes')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='issue_admin_notes')
+    note_type = models.CharField(max_length=20, choices=NOTE_TYPE_CHOICES, default='internal')
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Admin note on {self.issue.title} by {self.author.username}"
+
+
 class Vote(models.Model):
     """Votes (upvotes/downvotes) on issues and comments"""
     VOTE_TYPE_CHOICES = [

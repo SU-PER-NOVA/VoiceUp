@@ -10,6 +10,10 @@ import CreateIssue from "./pages/CreateIssue";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
+import { AdminLayout } from "./components/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminGrievances from "./pages/admin/AdminGrievances";
+import AdminGrievanceDetail from "./pages/admin/AdminGrievanceDetail";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +30,11 @@ const App = () => (
           <Route path="/create" element={<CreateIssue />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="grievances" element={<AdminGrievances />} />
+            <Route path="grievances/:id" element={<AdminGrievanceDetail />} />
+          </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -1,7 +1,8 @@
-from rest_framework import viewsets, status, filters
+from rest_framework import viewsets, status, filters, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
+from .permissions import IsAdminUser
 from rest_framework.views import APIView
 from django.db.models import Q, Count, F, ExpressionWrapper, FloatField, DurationField
 from django.db.models.functions import Extract, Now, Cast
@@ -14,14 +15,15 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .models import (
     UserProfile, State, District, City, Category, Tag, Issue,
-    Media, Comment, Vote, IssueView
+    Media, Comment, Vote, IssueView, IssueAdminNote
 )
 from .serializers import (
     UserSerializer, UserProfileSerializer, RegisterSerializer,
     StateSerializer, DistrictSerializer, CitySerializer,
     CategorySerializer, TagSerializer,
     IssueListSerializer, IssueDetailSerializer, IssueCreateSerializer,
-    MediaSerializer, CommentSerializer, VoteSerializer
+    MediaSerializer, CommentSerializer, VoteSerializer,
+    IssueAdminNoteSerializer, AdminIssueDetailSerializer
 )
 
 
@@ -48,6 +50,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
         token['username'] = user.username
         token['email'] = user.email
+        token['is_staff'] = user.is_staff
+        token['is_superuser'] = user.is_superuser
         return token
 
 
@@ -108,7 +112,16 @@ class RegisterView(APIView):
             return Response({
                 'error': 'An unexpected error occurred',
                 'detail': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            },             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CurrentUserView(APIView):
+    """Current authenticated user - includes is_staff for admin UI"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -484,3 +497,90 @@ class SearchView(APIView):
             'issues': issue_serializer.data,
             'tags': tag_serializer.data,
         })
+
+
+# ---------- Admin views (staff only) ----------
+
+class AdminDashboardStatsView(APIView):
+    """Dashboard stats for admin"""
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get(self, request):
+        from django.db.models import Count
+        total = Issue.objects.count()
+        by_status = dict(
+            Issue.objects.values('status').annotate(count=Count('id')).values_list('status', 'count')
+        )
+        # Ensure all statuses present
+        for s in ['pending', 'under_review', 'in_progress', 'resolved', 'rejected']:
+            by_status.setdefault(s, 0)
+        recent_7d = Issue.objects.filter(
+            created_at__gte=timezone.now() - timedelta(days=7)
+        ).count()
+        pending_count = Issue.objects.filter(status='pending').count()
+        return Response({
+            'total_issues': total,
+            'by_status': by_status,
+            'recent_7_days': recent_7d,
+            'pending_count': pending_count,
+        })
+
+
+class AdminGrievanceUpdateSerializer(serializers.ModelSerializer):
+    """Only status, is_featured, is_verified for admin update"""
+    class Meta:
+        model = Issue
+        fields = ['status', 'is_featured', 'is_verified']
+
+
+class AdminGrievanceViewSet(viewsets.ModelViewSet):
+    """Admin: list, retrieve, and update grievances (issues)"""
+    queryset = Issue.objects.all()
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    filterset_fields = ['status', 'category', 'state', 'district', 'city']
+    search_fields = ['title', 'description']
+    ordering_fields = ['created_at', 'upvotes_count', 'comments_count']
+    ordering = ['-created_at']
+    http_method_names = ['get', 'head', 'patch', 'options']
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return AdminIssueDetailSerializer
+        if self.action in ('partial_update', 'update'):
+            return AdminGrievanceUpdateSerializer
+        return IssueListSerializer
+
+    def get_queryset(self):
+        return super().get_queryset().select_related(
+            'author', 'category', 'state', 'district', 'city'
+        ).prefetch_related('tags', 'media_files', 'admin_notes')
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data = request.data
+        if 'status' in data:
+            instance.status = data['status']
+        if 'is_featured' in data:
+            instance.is_featured = bool(data['is_featured'])
+        if 'is_verified' in data:
+            instance.is_verified = bool(data['is_verified'])
+        if instance.status == 'resolved' and not instance.resolved_at:
+            instance.resolved_at = timezone.now()
+        if instance.status != 'resolved':
+            instance.resolved_at = None
+        instance.save()
+        serializer = AdminIssueDetailSerializer(instance, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['get', 'post'])
+    def notes(self, request, pk=None):
+        """List or create admin notes for this grievance"""
+        issue = self.get_object()
+        if request.method == 'GET':
+            notes = issue.admin_notes.all().select_related('author').order_by('-created_at')
+            return Response(IssueAdminNoteSerializer(notes, many=True).data)
+        # POST
+        serializer = IssueAdminNoteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(issue=issue, author=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
