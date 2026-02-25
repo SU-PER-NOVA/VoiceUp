@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Search, Upload, User, Menu, LogOut, ShieldCheck } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
@@ -75,7 +76,8 @@ export const Navbar = () => {
           </div>
         </form>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
           {isAuthenticated ? (
             <>
               <Link to="/create">
