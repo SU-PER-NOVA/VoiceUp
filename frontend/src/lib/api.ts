@@ -568,5 +568,40 @@ export const adminAPI = {
       body: JSON.stringify(data),
     });
   },
+
+  getStaff: async () => {
+    return apiRequest<Array<{ id: number; username: string; name: string; email: string }>>('/admin/staff/');
+  },
+
+  getAssignmentCategories: async () => {
+    const data = await apiRequest<any[]>('/admin/assignment-categories/');
+    return Array.isArray(data) ? data : data?.results ?? [];
+  },
+
+  updateAssignmentCategory: async (id: number, patch: { initiator_admin?: number }) => {
+    return apiRequest<any>(`/admin/assignment-categories/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(patch),
+    });
+  },
+
+  advanceWorkflow: async (
+    issueId: number,
+    data: { to_stage: string; assigned_to?: number; notes?: string }
+  ) => {
+    return apiRequest<any>(`/admin/grievances/${issueId}/workflow/`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
 };
+
+export const WORKFLOW_STAGES = [
+  { value: 'pending', label: 'Pending' },
+  { value: 'acknowledged', label: 'Acknowledged' },
+  { value: 'assigned_to_team', label: 'Assigned to Team' },
+  { value: 'resolution_done', label: 'Resolution Done' },
+  { value: 'validated', label: 'Validated' },
+  { value: 'remarks', label: 'Remarks (Closed)' },
+] as const;
 

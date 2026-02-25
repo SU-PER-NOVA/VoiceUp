@@ -14,12 +14,13 @@ import { AdminLayout } from "./components/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminGrievances from "./pages/admin/AdminGrievances";
 import AdminGrievanceDetail from "./pages/admin/AdminGrievanceDetail";
+import AdminAssignment from "./pages/admin/AdminAssignment";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+    <TooltipProvider defaultOptions={{ delayDuration: 200 }}>
       <Toaster />
       <Sonner />
       <BrowserRouter>
@@ -34,6 +35,7 @@ const App = () => (
             <Route index element={<AdminDashboard />} />
             <Route path="grievances" element={<AdminGrievances />} />
             <Route path="grievances/:id" element={<AdminGrievanceDetail />} />
+            <Route path="assignment" element={<AdminAssignment />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

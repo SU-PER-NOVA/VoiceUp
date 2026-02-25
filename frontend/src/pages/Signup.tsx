@@ -152,8 +152,9 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-4 relative">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,hsl(var(--primary)/0.15),transparent)] pointer-events-none" />
+      <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-4">
             <ShieldCheck className="h-8 w-8 text-primary" />
@@ -163,7 +164,7 @@ const Signup = () => {
           <p className="text-muted-foreground">Join thousands of citizens making a difference</p>
         </div>
 
-        <Card className="shadow-card-hover">
+        <Card className="shadow-xl border-border/80">
           <CardHeader>
             <CardTitle>Sign Up</CardTitle>
             <CardDescription>Create your account to start raising concerns</CardDescription>

@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowUp, ArrowDown, User } from "lucide-react";
+import { ArrowUp, ArrowDown, User, UserCheck, GitBranch } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { issueAPI, commentAPI } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
@@ -163,7 +163,7 @@ const IssueDetail = () => {
 
           {/* Media Gallery */}
           {issue.media_files && issue.media_files.length > 0 && (
-            <Card className="mt-6 p-6 shadow-card">
+            <Card className="mt-6 p-6 shadow-card border-border/80">
               <h2 className="mb-4 text-xl font-semibold text-foreground">Evidence</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {issue.media_files.map((media: any) => (
@@ -196,8 +196,55 @@ const IssueDetail = () => {
             </Card>
           )}
 
+          {/* Admin Assignment Status */}
+          {(issue.assigned_to_name || issue.workflow_stage_label || (issue.workflow_transitions_public?.length ?? 0) > 0) && (
+            <Card className="mt-6 p-6 shadow-card border-primary/30 bg-primary/5 dark:bg-primary/10">
+              <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-foreground">
+                <GitBranch className="h-5 w-5 text-primary" />
+                Processing Status
+              </h2>
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-4">
+                  {issue.assigned_to_name && (
+                    <div className="flex items-center gap-2">
+                      <UserCheck className="h-4 w-4 text-primary" />
+                      <span className="text-sm text-muted-foreground">Assigned to</span>
+                      <span className="font-medium text-foreground">{issue.assigned_to_name}</span>
+                    </div>
+                  )}
+                  {issue.workflow_stage_label && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Current stage</span>
+                      <span className="rounded-md bg-primary/20 px-2 py-0.5 text-sm font-medium text-primary">{issue.workflow_stage_label}</span>
+                    </div>
+                  )}
+                </div>
+                {(issue.workflow_transitions_public?.length ?? 0) > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium text-muted-foreground">Recent updates</p>
+                    <div className="space-y-2">
+                      {issue.workflow_transitions_public.slice(0, 5).map((t: any, i: number) => {
+                        const stageLabels: Record<string, string> = { pending: 'Pending', acknowledged: 'Acknowledged', assigned_to_team: 'Assigned to Team', resolution_done: 'Resolution Done', validated: 'Validated', remarks: 'Closed' };
+                        const label = stageLabels[t.to_stage] ?? t.to_stage?.replace(/_/g, ' ') ?? '';
+                        return (
+                        <div key={i} className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/50 dark:bg-muted/30 px-3 py-2 text-sm">
+                          <span className="font-medium text-foreground">{label}</span>
+                          {t.assigned_to_name && <span className="text-muted-foreground">→ <span className="text-foreground">{t.assigned_to_name}</span></span>}
+                          <span className="text-muted-foreground">by <span className="text-foreground">{t.performed_by_name}</span></span>
+                          <span className="text-xs text-muted-foreground ml-auto">
+                            {formatDistanceToNow(new Date(t.created_at), { addSuffix: true })}
+                          </span>
+                        </div>
+                      );})}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+
           {/* Comments Section */}
-          <Card className="mt-6 p-6 shadow-card">
+          <Card className="mt-6 p-6 shadow-card border-border/80">
             <h2 className="mb-6 text-2xl font-semibold text-foreground">
               Discussion ({comments.length})
             </h2>

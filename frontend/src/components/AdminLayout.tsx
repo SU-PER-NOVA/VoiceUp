@@ -6,7 +6,7 @@ import {
   FileText,
   ArrowLeft,
   ShieldCheck,
-  LogOut,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 const nav = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { to: "/admin/grievances", label: "Grievances", icon: FileText },
+  { to: "/admin/assignment", label: "Assignment", icon: Users },
 ];
 
 export const AdminLayout = () => {

@@ -7,6 +7,7 @@ from .views import (
     CategoryViewSet, TagViewSet, IssueViewSet,
     MediaViewSet, CommentViewSet, SearchView,
     AdminDashboardStatsView, AdminGrievanceViewSet,
+    AdminStaffListView, AssignmentCategoryViewSet,
 )
 
 router = DefaultRouter()
@@ -22,6 +23,7 @@ router.register(r'comments', CommentViewSet, basename='comment')
 
 admin_router = DefaultRouter()
 admin_router.register(r'grievances', AdminGrievanceViewSet, basename='admin-grievance')
+admin_router.register(r'assignment-categories', AssignmentCategoryViewSet, basename='admin-assignment-category')
 
 urlpatterns = [
     path('auth/register/', RegisterView.as_view(), name='register'),
@@ -29,6 +31,7 @@ urlpatterns = [
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/me/', CurrentUserView.as_view(), name='current_user'),
     path('admin/stats/', AdminDashboardStatsView.as_view(), name='admin_stats'),
+    path('admin/staff/', AdminStaffListView.as_view(), name='admin_staff'),
     path('admin/', include(admin_router.urls)),
     path('search/', SearchView.as_view(), name='search'),
     path('', include(router.urls)),

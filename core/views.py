@@ -15,7 +15,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .models import (
     UserProfile, State, District, City, Category, Tag, Issue,
-    Media, Comment, Vote, IssueView, IssueAdminNote
+    Media, Comment, Vote, IssueView, IssueAdminNote,
+    AssignmentCategory, WorkflowTransition
 )
 from .serializers import (
     UserSerializer, UserProfileSerializer, RegisterSerializer,
@@ -23,7 +24,8 @@ from .serializers import (
     CategorySerializer, TagSerializer,
     IssueListSerializer, IssueDetailSerializer, IssueCreateSerializer,
     MediaSerializer, CommentSerializer, VoteSerializer,
-    IssueAdminNoteSerializer, AdminIssueDetailSerializer
+    IssueAdminNoteSerializer, AdminIssueListSerializer, AdminIssueDetailSerializer,
+    AssignmentCategorySerializer, WorkflowTransitionSerializer
 )
 
 
@@ -253,7 +255,7 @@ class IssueViewSet(viewsets.ModelViewSet):
         elif sort_by == 'recent':
             queryset = queryset.order_by('-created_at')
         
-        return queryset.select_related('author', 'category', 'state', 'district', 'city').prefetch_related('tags', 'media_files')
+        return queryset.select_related('author', 'category', 'state', 'district', 'city', 'assigned_to').prefetch_related('tags', 'media_files', 'workflow_transitions')
 
     def perform_create(self, serializer):
         import logging
@@ -291,6 +293,23 @@ class IssueViewSet(viewsets.ModelViewSet):
                         # Log error but don't fail the entire request
                         logger.error(f"Error processing media file {file.name}: {e}", exc_info=True)
                         continue
+
+            # Auto-assign to initiator based on issue category
+            if issue.category and issue.category.assignment_category:
+                ac = issue.category.assignment_category
+                if ac.initiator_admin:
+                    issue.assigned_to = ac.initiator_admin
+                    issue.workflow_stage = 'pending'
+                    issue.save()
+                    WorkflowTransition.objects.create(
+                        issue=issue,
+                        from_stage='',
+                        to_stage='pending',
+                        assigned_to=ac.initiator_admin,
+                        performed_by=ac.initiator_admin,
+                        notes='Auto-assigned on creation'
+                    )
+                    logger.info(f"Issue {issue.id} auto-assigned to {ac.initiator_admin.username}")
         except Exception as e:
             logger.error(f"Error creating issue: {e}", exc_info=True)
             raise
@@ -541,19 +560,21 @@ class AdminGrievanceViewSet(viewsets.ModelViewSet):
     search_fields = ['title', 'description']
     ordering_fields = ['created_at', 'upvotes_count', 'comments_count']
     ordering = ['-created_at']
-    http_method_names = ['get', 'head', 'patch', 'options']
+    http_method_names = ['get', 'head', 'post', 'patch', 'options']
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return AdminIssueDetailSerializer
         if self.action in ('partial_update', 'update'):
             return AdminGrievanceUpdateSerializer
+        if self.action == 'list':
+            return AdminIssueListSerializer
         return IssueListSerializer
 
     def get_queryset(self):
         return super().get_queryset().select_related(
-            'author', 'category', 'state', 'district', 'city'
-        ).prefetch_related('tags', 'media_files', 'admin_notes')
+            'author', 'category', 'state', 'district', 'city', 'assigned_to'
+        ).prefetch_related('tags', 'media_files', 'admin_notes', 'workflow_transitions')
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -584,3 +605,66 @@ class AdminGrievanceViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save(issue=issue, author=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'])
+    def workflow(self, request, pk=None):
+        """Advance workflow: to_stage, assigned_to (optional), notes"""
+        from .models import WORKFLOW_STAGES
+        issue = self.get_object()
+        data = request.data
+        to_stage = data.get('to_stage')
+        if not to_stage:
+            return Response({'error': 'to_stage is required'}, status=status.HTTP_400_BAD_REQUEST)
+        valid_stages = [s[0] for s in WORKFLOW_STAGES]
+        if to_stage not in valid_stages:
+            return Response({'error': f'Invalid stage. Must be one of: {valid_stages}'}, status=status.HTTP_400_BAD_REQUEST)
+
+        assigned_to = None
+        if data.get('assigned_to'):
+            try:
+                assigned_to = User.objects.get(pk=data['assigned_to'], is_staff=True)
+            except User.DoesNotExist:
+                return Response({'error': 'Invalid assigned_to user'}, status=status.HTTP_400_BAD_REQUEST)
+        elif to_stage == 'pending':
+            # Keep current assignee or initiator
+            assigned_to = issue.assigned_to
+
+        from_stage = issue.workflow_stage
+        issue.workflow_stage = to_stage
+        issue.assigned_to = assigned_to
+        issue.save()
+
+        WorkflowTransition.objects.create(
+            issue=issue,
+            from_stage=from_stage,
+            to_stage=to_stage,
+            assigned_to=assigned_to,
+            performed_by=request.user,
+            notes=data.get('notes', '')
+        )
+        serializer = AdminIssueDetailSerializer(issue, context={'request': request})
+        return Response(serializer.data)
+
+
+class AdminStaffListView(APIView):
+    """List staff users for assignment dropdown"""
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get(self, request):
+        staff = User.objects.filter(is_staff=True).order_by('username')
+        return Response([{
+            'id': u.id,
+            'username': u.username,
+            'name': u.get_full_name() or u.username,
+            'email': u.email,
+        } for u in staff])
+
+
+class AssignmentCategoryViewSet(viewsets.ModelViewSet):
+    """Admin: CRUD assignment categories"""
+    queryset = AssignmentCategory.objects.all()
+    serializer_class = AssignmentCategorySerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get_queryset(self):
+        return super().get_queryset().select_related('initiator_admin').prefetch_related('issue_categories')

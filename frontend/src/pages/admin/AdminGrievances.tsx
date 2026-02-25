@@ -119,6 +119,8 @@ export default function AdminGrievances() {
                 <TableRow>
                   <TableHead>Title</TableHead>
                   <TableHead>Category</TableHead>
+                  <TableHead>Assigned To</TableHead>
+                  <TableHead>Workflow</TableHead>
                   <TableHead>Location</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Score</TableHead>
@@ -133,6 +135,10 @@ export default function AdminGrievances() {
                       {g.title}
                     </TableCell>
                     <TableCell>{g.category_name ?? g.category?.name ?? "—"}</TableCell>
+                    <TableCell className="text-muted-foreground text-xs">{g.assigned_to_name ?? "—"}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">{g.workflow_stage ?? "pending"}</Badge>
+                    </TableCell>
                     <TableCell className="text-muted-foreground text-xs">
                       {[g.location?.city, g.location?.state].filter(Boolean).join(", ") || "—"}
                     </TableCell>

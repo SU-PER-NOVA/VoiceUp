@@ -42,21 +42,21 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/95 dark:bg-background/90 backdrop-blur-md shadow-sm">
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-accent shadow-md group-hover:scale-105 transition-all">
               <span className="text-lg font-bold text-primary-foreground">V</span>
             </div>
             <span className="text-xl font-bold text-foreground">VoiceUp</span>
           </Link>
           
           <div className="hidden md:flex items-center gap-6">
-            <Link to="/feed" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/feed" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
               Explore
             </Link>
-            <Link to="/feed?sort_by=trending" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/feed?sort_by=trending" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
               Trending
             </Link>
           </div>

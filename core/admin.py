@@ -3,7 +3,8 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from .models import (
     UserProfile, State, District, City, Category, Tag, Issue,
-    Media, Comment, Vote, IssueView, IssueAdminNote
+    Media, Comment, Vote, IssueView, IssueAdminNote,
+    AssignmentCategory, WorkflowTransition
 )
 
 
@@ -38,10 +39,18 @@ class CityAdmin(admin.ModelAdmin):
     state_name.short_description = 'State'
 
 
+@admin.register(AssignmentCategory)
+class AssignmentCategoryAdmin(admin.ModelAdmin):
+    list_display = ['name', 'slug', 'initiator_admin', 'display_order']
+    search_fields = ['name', 'slug']
+    list_filter = ['initiator_admin']
+
+
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'slug', 'color']
+    list_display = ['name', 'slug', 'assignment_category', 'color']
     search_fields = ['name', 'slug']
+    list_filter = ['assignment_category']
 
 
 @admin.register(Tag)
@@ -58,7 +67,7 @@ class MediaInline(admin.TabularInline):
 
 @admin.register(Issue)
 class IssueAdmin(admin.ModelAdmin):
-    list_display = ['title', 'author', 'category', 'state', 'status', 'upvotes_count', 'created_at']
+    list_display = ['title', 'author', 'category', 'assigned_to', 'workflow_stage', 'state', 'status', 'upvotes_count', 'created_at']
     list_filter = ['status', 'category', 'state', 'scope', 'is_featured', 'is_verified', 'created_at']
     search_fields = ['title', 'description', 'author__username']
     readonly_fields = ['upvotes_count', 'downvotes_count', 'comments_count', 'views_count', 'created_at', 'updated_at']
@@ -93,6 +102,13 @@ class IssueViewAdmin(admin.ModelAdmin):
     list_display = ['issue', 'user', 'ip_address', 'viewed_at']
     list_filter = ['viewed_at']
     search_fields = ['issue__title', 'user__username']
+
+
+@admin.register(WorkflowTransition)
+class WorkflowTransitionAdmin(admin.ModelAdmin):
+    list_display = ['issue', 'from_stage', 'to_stage', 'assigned_to', 'performed_by', 'created_at']
+    list_filter = ['to_stage', 'created_at']
+    search_fields = ['issue__title', 'notes']
 
 
 @admin.register(IssueAdminNote)

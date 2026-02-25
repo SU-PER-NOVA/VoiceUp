@@ -102,6 +102,12 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 220 13% 92%;
     --sidebar-border: 222 18% 22%;
     --sidebar-ring: 145 63% 48%;
+
+    /* Dark theme gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(145 63% 38%) 0%, hsl(168 76% 38%) 50%, hsl(142 71% 42%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(168 76% 42%) 0%, hsl(180 70% 48%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(222 20% 11%) 0%, hsl(222 20% 8%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(222 18% 16%) 0%, hsl(222 18% 14%) 100%);
   }
 }
 
@@ -111,6 +117,22 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+}
+
+@layer utilities {
+  .bg-gradient-hero {
+    background-image: var(--gradient-hero);
+  }
+  .bg-gradient-accent {
+    background-image: var(--gradient-accent);
+  }
+  .bg-gradient-subtle {
+    background-image: var(--gradient-subtle);
   }
 }

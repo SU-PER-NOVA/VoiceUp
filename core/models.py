@@ -65,6 +65,29 @@ class City(models.Model):
         return f"{self.name}, {self.district.name}"
 
 
+class AssignmentCategory(models.Model):
+    """Admin assignment buckets - maps to initiator who gets new issues (4-5 categories)"""
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    initiator_admin = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='initiator_for_assignment_categories',
+        limit_choices_to={'is_staff': True}
+    )
+    display_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name_plural = "Assignment Categories"
+        ordering = ['display_order', 'name']
+
+    def __str__(self):
+        return self.name
+
+
 class Category(models.Model):
     """Issue Categories"""
     name = models.CharField(max_length=100, unique=True)
@@ -72,6 +95,13 @@ class Category(models.Model):
     description = models.TextField(blank=True)
     icon = models.CharField(max_length=50, blank=True)  # Icon name for frontend
     color = models.CharField(max_length=7, default='#3B82F6')  # Hex color code
+    assignment_category = models.ForeignKey(
+        AssignmentCategory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='issue_categories'
+    )
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -126,6 +156,17 @@ class Issue(models.Model):
     # Categorization
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='issues')
     tags = models.ManyToManyField(Tag, related_name='issues', blank=True)
+
+    # Workflow & Assignment
+    assigned_to = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_issues',
+        limit_choices_to={'is_staff': True}
+    )
+    workflow_stage = models.CharField(max_length=30, default='pending')  # pending, acknowledged, assigned_to_team, resolution_done, validated, remarks
     
     # Engagement metrics
     upvotes_count = models.IntegerField(default=0)
@@ -299,6 +340,40 @@ class IssueAdminNote(models.Model):
 
     def __str__(self):
         return f"Admin note on {self.issue.title} by {self.author.username}"
+
+
+# Workflow stage constants (ordered)
+WORKFLOW_STAGES = [
+    ('pending', 'Pending'),
+    ('acknowledged', 'Acknowledged'),
+    ('assigned_to_team', 'Assigned to Team'),
+    ('resolution_done', 'Resolution Done'),
+    ('validated', 'Validated'),
+    ('remarks', 'Remarks (Closed)'),
+]
+
+
+class WorkflowTransition(models.Model):
+    """Log each workflow step - who performed it, who it's assigned to, notes"""
+    issue = models.ForeignKey(Issue, on_delete=models.CASCADE, related_name='workflow_transitions')
+    from_stage = models.CharField(max_length=30, blank=True)  # empty for initial
+    to_stage = models.CharField(max_length=30)
+    assigned_to = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='workflow_assignments'
+    )
+    performed_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='workflow_actions')
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.issue.title}: {self.from_stage} -> {self.to_stage}"
 
 
 class Vote(models.Model):

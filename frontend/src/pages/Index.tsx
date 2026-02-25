@@ -18,27 +18,27 @@ const Index = () => {
             alt="Community empowerment" 
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/25 via-primary/20 to-primary/15"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/75 to-background/60 dark:from-background/95 dark:via-background/90 dark:to-background/80"></div>
         </div>
         
         <div className="container relative z-10 px-4">
           <div className="mx-auto max-w-4xl text-center">
-            <h1 className="mb-6 text-4xl font-bold text-primary-foreground md:text-6xl">
+            <h1 className="mb-6 text-4xl font-bold text-foreground md:text-6xl tracking-tight">
               Your Voice, Your Power
             </h1>
-            <p className="mb-8 text-lg text-primary-foreground/90 md:text-xl">
+            <p className="mb-8 text-lg text-muted-foreground md:text-xl max-w-2xl mx-auto">
               A multimedia platform where citizens unite to raise concerns, share evidence, 
               and demand accountability from local to national governance.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
               <Link to="/feed">
-                <Button size="lg" variant="secondary" className="w-full sm:w-auto gap-2">
+                <Button size="lg" className="w-full sm:w-auto gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25">
                   <Users className="h-5 w-5" />
                   Explore Issues
                 </Button>
               </Link>
               <Link to="/create">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto gap-2 bg-background/95 border-background/50 text-foreground hover:bg-background hover:scale-105 transition-all shadow-lg">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto gap-2 border-2 border-primary/50 bg-primary/5 hover:bg-primary/10 text-foreground hover:scale-105 transition-all">
                   <Upload className="h-5 w-5" />
                   Report an Issue
                 </Button>
@@ -61,8 +61,8 @@ const Index = () => {
           </div>
 
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <Card className="p-6 shadow-card hover:shadow-card-hover transition-all">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-accent">
+            <Card className="p-6 shadow-card hover:shadow-card-hover transition-all border-border/80 hover:border-primary/30 group">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-accent shadow-lg group-hover:scale-110 transition-transform">
                 <Upload className="h-6 w-6 text-accent-foreground" />
               </div>
               <h3 className="mb-2 text-xl font-semibold text-card-foreground">
@@ -73,8 +73,8 @@ const Index = () => {
               </p>
             </Card>
 
-            <Card className="p-6 shadow-card hover:shadow-card-hover transition-all">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-hero">
+            <Card className="p-6 shadow-card hover:shadow-card-hover transition-all border-border/80 hover:border-primary/30 group">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-hero shadow-lg group-hover:scale-110 transition-transform">
                 <MapPin className="h-6 w-6 text-primary-foreground" />
               </div>
               <h3 className="mb-2 text-xl font-semibold text-card-foreground">
@@ -85,8 +85,8 @@ const Index = () => {
               </p>
             </Card>
 
-            <Card className="p-6 shadow-card hover:shadow-card-hover transition-all">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-success">
+            <Card className="p-6 shadow-card hover:shadow-card-hover transition-all border-border/80 hover:border-primary/30 group">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-success shadow-lg group-hover:scale-110 transition-transform">
                 <Users className="h-6 w-6 text-success-foreground" />
               </div>
               <h3 className="mb-2 text-xl font-semibold text-card-foreground">
@@ -97,8 +97,8 @@ const Index = () => {
               </p>
             </Card>
 
-            <Card className="p-6 shadow-card hover:shadow-card-hover transition-all">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-accent">
+            <Card className="p-6 shadow-card hover:shadow-card-hover transition-all border-border/80 hover:border-primary/30 group">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-accent shadow-lg group-hover:scale-110 transition-transform">
                 <Shield className="h-6 w-6 text-accent-foreground" />
               </div>
               <h3 className="mb-2 text-xl font-semibold text-card-foreground">
@@ -109,8 +109,8 @@ const Index = () => {
               </p>
             </Card>
 
-            <Card className="p-6 shadow-card hover:shadow-card-hover transition-all">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-hero">
+            <Card className="p-6 shadow-card hover:shadow-card-hover transition-all border-border/80 hover:border-primary/30 group">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-hero shadow-lg group-hover:scale-110 transition-transform">
                 <TrendingUp className="h-6 w-6 text-primary-foreground" />
               </div>
               <h3 className="mb-2 text-xl font-semibold text-card-foreground">
@@ -121,8 +121,8 @@ const Index = () => {
               </p>
             </Card>
 
-            <Card className="p-6 shadow-card hover:shadow-card-hover transition-all">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-success">
+            <Card className="p-6 shadow-card hover:shadow-card-hover transition-all border-border/80 hover:border-primary/30 group">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-success shadow-lg group-hover:scale-110 transition-transform">
                 <MessageSquare className="h-6 w-6 text-success-foreground" />
               </div>
               <h3 className="mb-2 text-xl font-semibold text-card-foreground">
@@ -137,7 +137,7 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-muted py-16">
+      <section className="bg-muted/50 dark:bg-muted/30 py-16 border-y border-border/50">
         <div className="container px-4">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="mb-4 text-3xl font-bold text-foreground md:text-4xl">
@@ -157,7 +157,7 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border py-8">
+      <footer className="border-t border-border py-10 bg-muted/20">
         <div className="container px-4">
           <div className="text-center text-sm text-muted-foreground">
             <p>© 2025 VoiceUp. Empowering citizens for a better tomorrow.</p>

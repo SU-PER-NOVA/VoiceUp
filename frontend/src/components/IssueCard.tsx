@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, MessageSquare, MapPin, Share2 } from "lucide-react";
+import { ArrowUp, ArrowDown, MessageSquare, MapPin, Share2, UserCheck, GitBranch } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { issueAPI } from "@/lib/api";
@@ -30,6 +30,9 @@ interface Issue {
   tags: Array<{ name: string; slug: string }> | string[];
   score?: number;
   user_vote?: 'upvote' | 'downvote' | null;
+  assigned_to_name?: string | null;
+  workflow_stage?: string;
+  workflow_stage_label?: string;
 }
 
 interface IssueCardProps {
@@ -94,10 +97,13 @@ export const IssueCard = ({ issue, isDetail = false, onVoteChange }: IssueCardPr
   };
 
   const categoryName = issue.category_name || issue.category?.name || 'Uncategorized';
+  // Handle both shapes: { city: "Mumbai" } or { city: { id, name } }
+  const getLocPart = (v: unknown) =>
+    typeof v === 'object' && v !== null && 'name' in v ? (v as { name: string }).name : (typeof v === 'string' ? v : '');
   const locationStr = [
-    issue.location.city,
-    issue.location.district,
-    issue.location.state
+    getLocPart(issue.location?.city),
+    getLocPart(issue.location?.district),
+    getLocPart(issue.location?.state),
   ].filter(Boolean).join(', ') || 'Location not specified';
   
   const tags = Array.isArray(issue.tags) 
@@ -110,10 +116,10 @@ export const IssueCard = ({ issue, isDetail = false, onVoteChange }: IssueCardPr
     : 'Recently';
 
   return (
-    <Card className={cn("overflow-hidden shadow-card hover:shadow-card-hover transition-all", isDetail && "shadow-none hover:shadow-none")}>
+    <Card className={cn("overflow-hidden shadow-card hover:shadow-card-hover transition-all border-border/80 hover:border-primary/20", isDetail && "shadow-none hover:shadow-none border-primary/10")}>
       <div className="flex flex-col md:flex-row">
         {/* Vote Section */}
-        <div className="flex md:flex-col items-center gap-2 border-b md:border-b-0 md:border-r border-border bg-muted/30 p-4">
+        <div className="flex md:flex-col items-center gap-2 border-b md:border-b-0 md:border-r border-border bg-muted/40 dark:bg-muted/30 p-4">
           <Button 
             variant="ghost" 
             size="icon" 
@@ -186,13 +192,28 @@ export const IssueCard = ({ issue, isDetail = false, onVoteChange }: IssueCardPr
           )}
 
           <div className="flex items-center justify-between border-t border-border pt-4">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
               <span className="text-sm text-muted-foreground">
                 Posted by{" "}
                 <span className="font-medium text-foreground">
                   {issue.is_anonymous ? "Anonymous" : issue.author_name}
                 </span>
               </span>
+              {(issue.assigned_to_name || issue.workflow_stage_label) && (
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-primary/10 dark:bg-primary/20 px-2 py-1 text-xs">
+                  <UserCheck className="h-3.5 w-3.5 text-primary shrink-0" />
+                  {issue.assigned_to_name && (
+                    <>
+                      <span className="text-muted-foreground">Assigned to</span>
+                      <span className="font-medium text-foreground">{issue.assigned_to_name}</span>
+                      {issue.workflow_stage_label && <span className="text-muted-foreground">·</span>}
+                    </>
+                  )}
+                  {issue.workflow_stage_label && (
+                    <span className="font-medium text-primary">{issue.workflow_stage_label}</span>
+                  )}
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-2">

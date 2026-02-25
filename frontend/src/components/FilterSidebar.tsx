@@ -102,7 +102,7 @@ export const FilterSidebar = ({ filters, onFiltersChange }: FilterSidebarProps) 
   };
 
   return (
-    <Card className="p-6 shadow-card sticky top-20">
+    <Card className="p-6 shadow-card border-border/80 sticky top-20">
       <h2 className="mb-4 text-lg font-semibold text-foreground">Filters</h2>
       
       {/* Sort By */}

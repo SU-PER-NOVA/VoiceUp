@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { adminAPI } from "@/lib/api";
+import { adminAPI, WORKFLOW_STAGES } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,8 +16,9 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, MapPin, User, MessageSquare, Eye, Star, ShieldCheck } from "lucide-react";
+import { ArrowLeft, MapPin, User, MessageSquare, Eye, Star, ShieldCheck, GitBranch } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const STATUS_OPTIONS = [
   { value: "pending", label: "Pending" },
@@ -37,6 +38,11 @@ export default function AdminGrievanceDetail() {
   const [newNote, setNewNote] = useState("");
   const [noteType, setNoteType] = useState<"internal" | "public_response">("internal");
   const [submittingNote, setSubmittingNote] = useState(false);
+  const [staff, setStaff] = useState<any[]>([]);
+  const [workflowStage, setWorkflowStage] = useState("");
+  const [workflowAssignee, setWorkflowAssignee] = useState<string>("");
+  const [workflowNotes, setWorkflowNotes] = useState("");
+  const [submittingWorkflow, setSubmittingWorkflow] = useState(false);
 
   const load = async () => {
     if (!id) return;
@@ -58,6 +64,17 @@ export default function AdminGrievanceDetail() {
   useEffect(() => {
     load();
   }, [id]);
+
+  useEffect(() => {
+    adminAPI.getStaff().then(setStaff).catch(() => setStaff([]));
+  }, []);
+
+  useEffect(() => {
+    if (issue) {
+      setWorkflowStage(issue.workflow_stage || "pending");
+      setWorkflowAssignee(issue.assigned_to?.toString() ?? "none");
+    }
+  }, [issue?.id, issue?.workflow_stage, issue?.assigned_to]);
 
   const handleStatusChange = async (status: string) => {
     if (!issue) return;
@@ -98,6 +115,25 @@ export default function AdminGrievanceDetail() {
       toast({ title: "Update failed", description: e.message, variant: "destructive" });
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleWorkflowAdvance = async () => {
+    if (!issue || !id) return;
+    setSubmittingWorkflow(true);
+    try {
+      const updated = await adminAPI.advanceWorkflow(issue.id, {
+        to_stage: workflowStage,
+        assigned_to: workflowAssignee && workflowAssignee !== "none" ? parseInt(workflowAssignee) : undefined,
+        notes: workflowNotes.trim() || undefined,
+      });
+      setIssue(updated);
+      setWorkflowNotes("");
+      toast({ title: "Workflow updated" });
+    } catch (e: any) {
+      toast({ title: "Workflow update failed", description: e.message, variant: "destructive" });
+    } finally {
+      setSubmittingWorkflow(false);
     }
   };
 
@@ -293,6 +329,104 @@ export default function AdminGrievanceDetail() {
                   View on public site
                 </Link>
               </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <GitBranch className="h-4 w-4" />
+                Workflow
+              </CardTitle>
+              <CardDescription>
+                Current: <strong>{WORKFLOW_STAGES.find((s) => s.value === (issue.workflow_stage || "pending"))?.label ?? issue.workflow_stage}</strong>
+                {issue.assigned_to_name && (
+                  <> · Assigned to: <strong>{issue.assigned_to_name}</strong></>
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap gap-1">
+                {WORKFLOW_STAGES.map((s, i) => (
+                  <Badge
+                    key={s.value}
+                    variant={issue.workflow_stage === s.value ? "default" : "outline"}
+                    className={cn(
+                      "text-xs",
+                      issue.workflow_stage === s.value && "ring-2 ring-primary"
+                    )}
+                  >
+                    {s.label}
+                  </Badge>
+                ))}
+              </div>
+              <Separator />
+              <div className="space-y-2">
+                <Label>Advance to stage</Label>
+                <Select value={workflowStage} onValueChange={setWorkflowStage}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {WORKFLOW_STAGES.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Assign to</Label>
+                <Select value={workflowAssignee || "none"} onValueChange={setWorkflowAssignee}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select admin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— Keep current —</SelectItem>
+                    {staff.map((s) => (
+                      <SelectItem key={s.id} value={s.id.toString()}>
+                        {s.name} (@{s.username})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Notes (optional)</Label>
+                <Textarea
+                  placeholder="Add notes for this transition..."
+                  value={workflowNotes}
+                  onChange={(e) => setWorkflowNotes(e.target.value)}
+                  rows={2}
+                  className="resize-none"
+                />
+              </div>
+              <Button
+                size="sm"
+                onClick={handleWorkflowAdvance}
+                disabled={submittingWorkflow}
+              >
+                {submittingWorkflow ? "Updating..." : "Update workflow"}
+              </Button>
+              {(issue.workflow_transitions?.length ?? 0) > 0 && (
+                <>
+                  <Separator />
+                  <div className="space-y-2">
+                    <Label className="text-xs">History</Label>
+                    <div className="max-h-36 space-y-2 overflow-y-auto">
+                      {(issue.workflow_transitions ?? []).slice().reverse().map((t: any) => (
+                        <div key={t.id} className="rounded border border-border bg-muted/30 p-2 text-xs">
+                          <span className="font-medium">{t.from_stage || "—"} → {t.to_stage}</span>
+                          {t.assigned_to_name && <span className="text-muted-foreground"> · {t.assigned_to_name}</span>}
+                          <span className="block text-muted-foreground">by {t.performed_by_name} · {formatDistanceToNow(new Date(t.created_at), { addSuffix: true })}</span>
+                          {t.notes && <p className="mt-1 text-muted-foreground">{t.notes}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 

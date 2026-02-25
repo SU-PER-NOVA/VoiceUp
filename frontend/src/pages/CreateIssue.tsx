@@ -179,13 +179,13 @@ const CreateIssue = () => {
       <div className="container px-4 py-8">
         <div className="mx-auto max-w-3xl">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Report an Issue</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">Report an Issue</h1>
+            <p className="text-muted-foreground mt-1">
               Share your concern with evidence to bring attention to important matters
             </p>
           </div>
 
-          <Card className="p-6 shadow-card">
+          <Card className="p-6 shadow-card border-border/80">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Title */}
               <div>

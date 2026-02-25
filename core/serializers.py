@@ -3,7 +3,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from .models import (
     UserProfile, State, District, City, Category, Tag, Issue,
-    Media, Comment, Vote, IssueView, IssueAdminNote
+    Media, Comment, Vote, IssueView, IssueAdminNote,
+    AssignmentCategory, WorkflowTransition
 )
 
 
@@ -218,14 +219,26 @@ class IssueListSerializer(serializers.ModelSerializer):
     score = serializers.SerializerMethodField()
     user_vote = serializers.SerializerMethodField()
     
+    assigned_to_name = serializers.SerializerMethodField()
+    workflow_stage_label = serializers.SerializerMethodField()
+
     class Meta:
         model = Issue
         fields = [
             'id', 'title', 'description', 'author_name', 'is_anonymous',
             'category', 'category_name', 'location', 'tags', 'first_image',
             'upvotes_count', 'downvotes_count', 'comments_count', 'score',
-            'status', 'scope', 'created_at', 'user_vote'
+            'status', 'scope', 'created_at', 'user_vote',
+            'assigned_to_name', 'workflow_stage', 'workflow_stage_label'
         ]
+
+    def get_assigned_to_name(self, obj):
+        return (obj.assigned_to.get_full_name() or obj.assigned_to.username) if obj.assigned_to else None
+
+    def get_workflow_stage_label(self, obj):
+        labels = {'pending': 'Pending', 'acknowledged': 'Acknowledged', 'assigned_to_team': 'Assigned to Team',
+                  'resolution_done': 'Resolution Done', 'validated': 'Validated', 'remarks': 'Closed'}
+        return labels.get(obj.workflow_stage, obj.workflow_stage or 'Pending')
     
     def get_author_name(self, obj):
         if obj.is_anonymous:
@@ -274,6 +287,10 @@ class IssueDetailSerializer(serializers.ModelSerializer):
     trending_score = serializers.SerializerMethodField()
     user_vote = serializers.SerializerMethodField()
     
+    assigned_to_name = serializers.SerializerMethodField()
+    workflow_stage_label = serializers.SerializerMethodField()
+    workflow_transitions_public = serializers.SerializerMethodField()
+
     class Meta:
         model = Issue
         fields = [
@@ -281,8 +298,21 @@ class IssueDetailSerializer(serializers.ModelSerializer):
             'is_anonymous', 'category', 'tags', 'media_files', 'location',
             'upvotes_count', 'downvotes_count', 'comments_count', 'views_count',
             'score', 'trending_score', 'status', 'scope', 'is_featured',
-            'is_verified', 'created_at', 'updated_at', 'resolved_at', 'user_vote'
+            'is_verified', 'created_at', 'updated_at', 'resolved_at', 'user_vote',
+            'assigned_to_name', 'workflow_stage', 'workflow_stage_label', 'workflow_transitions_public'
         ]
+
+    def get_assigned_to_name(self, obj):
+        return (obj.assigned_to.get_full_name() or obj.assigned_to.username) if obj.assigned_to else None
+
+    def get_workflow_stage_label(self, obj):
+        labels = {'pending': 'Pending', 'acknowledged': 'Acknowledged', 'assigned_to_team': 'Assigned to Team',
+                  'resolution_done': 'Resolution Done', 'validated': 'Validated', 'remarks': 'Closed'}
+        return labels.get(obj.workflow_stage, obj.workflow_stage or 'Pending')
+
+    def get_workflow_transitions_public(self, obj):
+        transitions = obj.workflow_transitions.all().order_by('-created_at')[:5]
+        return [{'to_stage': t.to_stage, 'assigned_to_name': t.assigned_to.get_full_name() or t.assigned_to.username if t.assigned_to else None, 'performed_by_name': t.performed_by.get_full_name() or t.performed_by.username, 'created_at': t.created_at.isoformat()} for t in transitions]
         read_only_fields = [
             'id', 'author', 'upvotes_count', 'downvotes_count', 'comments_count',
             'views_count', 'created_at', 'updated_at'
@@ -431,12 +461,62 @@ class IssueAdminNoteSerializer(serializers.ModelSerializer):
         return obj.author.get_full_name() or obj.author.username
 
 
+class WorkflowTransitionSerializer(serializers.ModelSerializer):
+    """Workflow transition log"""
+    performed_by_name = serializers.SerializerMethodField()
+    assigned_to_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = WorkflowTransition
+        fields = ['id', 'issue', 'from_stage', 'to_stage', 'assigned_to', 'assigned_to_name', 'performed_by', 'performed_by_name', 'notes', 'created_at']
+
+    def get_performed_by_name(self, obj):
+        return obj.performed_by.get_full_name() or obj.performed_by.username
+
+    def get_assigned_to_name(self, obj):
+        return (obj.assigned_to.get_full_name() or obj.assigned_to.username) if obj.assigned_to else None
+
+
+class AssignmentCategorySerializer(serializers.ModelSerializer):
+    """Assignment category for admin config"""
+    initiator_admin_name = serializers.SerializerMethodField()
+    issue_categories = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AssignmentCategory
+        fields = ['id', 'name', 'slug', 'description', 'initiator_admin', 'initiator_admin_name', 'display_order', 'issue_categories']
+
+    def get_initiator_admin_name(self, obj):
+        return (obj.initiator_admin.get_full_name() or obj.initiator_admin.username) if obj.initiator_admin else None
+
+    def get_issue_categories(self, obj):
+        return [{'id': c.id, 'name': c.name, 'slug': c.slug} for c in obj.issue_categories.all()]
+
+
+class AdminIssueListSerializer(IssueListSerializer):
+    """Issue list for admin - includes assigned_to, workflow_stage"""
+    assigned_to_name = serializers.SerializerMethodField()
+
+    class Meta(IssueListSerializer.Meta):
+        fields = IssueListSerializer.Meta.fields + ['assigned_to', 'assigned_to_name', 'workflow_stage']
+
+    def get_assigned_to_name(self, obj):
+        return (obj.assigned_to.get_full_name() or obj.assigned_to.username) if obj.assigned_to else None
+
+
 class AdminIssueDetailSerializer(IssueDetailSerializer):
-    """Issue detail for admin - includes admin_notes"""
+    """Issue detail for admin - includes admin_notes, workflow"""
     admin_notes = IssueAdminNoteSerializer(many=True, read_only=True)
+    workflow_transitions = WorkflowTransitionSerializer(many=True, read_only=True)
+    assigned_to_name = serializers.SerializerMethodField()
 
     class Meta(IssueDetailSerializer.Meta):
-        fields = IssueDetailSerializer.Meta.fields + ['admin_notes']
+        fields = IssueDetailSerializer.Meta.fields + [
+            'admin_notes', 'workflow_transitions', 'assigned_to', 'assigned_to_name', 'workflow_stage'
+        ]
+
+    def get_assigned_to_name(self, obj):
+        return (obj.assigned_to.get_full_name() or obj.assigned_to.username) if obj.assigned_to else None
 
 
 class VoteSerializer(serializers.ModelSerializer):

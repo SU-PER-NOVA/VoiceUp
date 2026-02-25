@@ -35,6 +35,14 @@ python manage.py populate_initial_data
 
 This creates states, districts, cities, and categories.
 
+### Populate assignment categories (first time, after createsuperuser)
+
+```bash
+python manage.py populate_assignment_categories
+```
+
+This creates 5 assignment buckets and links issue categories to initiator admins. New grievances are auto-assigned to the initiator of their category.
+
 ### Create an admin user (for admin panel and staff access)
 
 ```bash
