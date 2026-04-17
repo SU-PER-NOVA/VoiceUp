@@ -1,0 +1,181 @@
+{
+  "Punjab": {
+    "code": "PB",
+    "districts": {
+      "Ludhiana": { "cities": ["Ludhiana"] },
+      "Amritsar": { "cities": ["Amritsar"] },
+      "Jalandhar": { "cities": ["Jalandhar"] },
+      "Patiala": { "cities": ["Patiala"] },
+      "Bathinda": { "cities": ["Bathinda"] }
+    }
+  },
+  "Haryana": {
+    "code": "HR",
+    "districts": {
+      "Gurgaon": { "cities": ["Gurgaon"] },
+      "Faridabad": { "cities": ["Faridabad"] },
+      "Panipat": { "cities": ["Panipat"] },
+      "Ambala": { "cities": ["Ambala"] },
+      "Hisar": { "cities": ["Hisar"] }
+    }
+  },
+  "Delhi": {
+    "code": "DL",
+    "districts": {
+      "Central Delhi": { "cities": ["Delhi"] },
+      "South Delhi": { "cities": ["Delhi"] },
+      "North Delhi": { "cities": ["Delhi"] }
+    }
+  },
+  "Uttar Pradesh": {
+    "code": "UP",
+    "districts": {
+      "Lucknow": { "cities": ["Lucknow"] },
+      "Kanpur Nagar": { "cities": ["Kanpur"] },
+      "Noida": { "cities": ["Noida"] },
+      "Varanasi": { "cities": ["Varanasi"] },
+      "Agra": { "cities": ["Agra"] }
+    }
+  },
+  "Rajasthan": {
+    "code": "RJ",
+    "districts": {
+      "Jaipur": { "cities": ["Jaipur"] },
+      "Jodhpur": { "cities": ["Jodhpur"] },
+      "Udaipur": { "cities": ["Udaipur"] },
+      "Kota": { "cities": ["Kota"] }
+    }
+  },
+  "Maharashtra": {
+    "code": "MH",
+    "districts": {
+      "Mumbai": { "cities": ["Mumbai"] },
+      "Pune": { "cities": ["Pune"] },
+      "Nagpur": { "cities": ["Nagpur"] },
+      "Nashik": { "cities": ["Nashik"] }
+    }
+  },
+  "Gujarat": {
+    "code": "GJ",
+    "districts": {
+      "Ahmedabad": { "cities": ["Ahmedabad"] },
+      "Surat": { "cities": ["Surat"] },
+      "Vadodara": { "cities": ["Vadodara"] }
+    }
+  },
+  "Karnataka": {
+    "code": "KA",
+    "districts": {
+      "Bangalore Urban": { "cities": ["Bangalore"] },
+      "Mysore": { "cities": ["Mysore"] },
+      "Mangalore": { "cities": ["Mangalore"] }
+    }
+  },
+  "Tamil Nadu": {
+    "code": "TN",
+    "districts": {
+      "Chennai": { "cities": ["Chennai"] },
+      "Coimbatore": { "cities": ["Coimbatore"] },
+      "Madurai": { "cities": ["Madurai"] }
+    }
+  },
+  "West Bengal": {
+    "code": "WB",
+    "districts": {
+      "Kolkata": { "cities": ["Kolkata"] },
+      "Howrah": { "cities": ["Howrah"] },
+      "Darjeeling": { "cities": ["Darjeeling"] }
+    }
+  },
+  "Telangana": {
+    "code": "TG",
+    "districts": {
+      "Hyderabad": { "cities": ["Hyderabad"] },
+      "Warangal": { "cities": ["Warangal"] }
+    }
+  },
+  "Andhra Pradesh": {
+    "code": "AP",
+    "districts": {
+      "Visakhapatnam": { "cities": ["Visakhapatnam"] },
+      "Vijayawada": { "cities": ["Vijayawada"] }
+    }
+  },
+  "Kerala": {
+    "code": "KL",
+    "districts": {
+      "Ernakulam": { "cities": ["Kochi"] },
+      "Thiruvananthapuram": { "cities": ["Trivandrum"] }
+    }
+  },
+  "Madhya Pradesh": {
+    "code": "MP",
+    "districts": {
+      "Bhopal": { "cities": ["Bhopal"] },
+      "Indore": { "cities": ["Indore"] }
+    }
+  },
+  "Bihar": {
+    "code": "BR",
+    "districts": {
+      "Patna": { "cities": ["Patna"] },
+      "Gaya": { "cities": ["Gaya"] }
+    }
+  },
+  "Jharkhand": {
+    "code": "JH",
+    "districts": {
+      "Ranchi": { "cities": ["Ranchi"] },
+      "Jamshedpur": { "cities": ["Jamshedpur"] }
+    }
+  },
+  "Odisha": {
+    "code": "OD",
+    "districts": {
+      "Bhubaneswar": { "cities": ["Bhubaneswar"] },
+      "Cuttack": { "cities": ["Cuttack"] }
+    }
+  },
+  "Assam": {
+    "code": "AS",
+    "districts": {
+      "Guwahati": { "cities": ["Guwahati"] },
+      "Dibrugarh": { "cities": ["Dibrugarh"] }
+    }
+  },
+  "Chhattisgarh": {
+    "code": "CG",
+    "districts": {
+      "Raipur": { "cities": ["Raipur"] },
+      "Bilaspur": { "cities": ["Bilaspur"] }
+    }
+  },
+  "Uttarakhand": {
+    "code": "UK",
+    "districts": {
+      "Dehradun": { "cities": ["Dehradun"] },
+      "Haridwar": { "cities": ["Haridwar"] }
+    }
+  },
+  "Himachal Pradesh": {
+    "code": "HP",
+    "districts": {
+      "Shimla": { "cities": ["Shimla"] },
+      "Mandi": { "cities": ["Mandi"] }
+    }
+  },
+  "Jammu and Kashmir": {
+    "code": "JK",
+    "districts": {
+      "Srinagar": { "cities": ["Srinagar"] },
+      "Jammu": { "cities": ["Jammu"] }
+    }
+  },
+  "Goa": {
+    "code": "GA",
+    "districts": {
+      "North Goa": { "cities": ["Panaji"] },
+      "South Goa": { "cities": ["Margao"] }
+    }
+  }
+}

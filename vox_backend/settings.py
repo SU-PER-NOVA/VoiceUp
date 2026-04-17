@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-default")
 DEBUG = os.environ.get("DEBUG", "False") == "True"
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "yourdomain.com").split(",")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "voiceup.karantolamatti.in").split(",")
 
 # Application definition
 
@@ -77,9 +77,9 @@ WSGI_APPLICATION = "vox_backend.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DB_NAME", "capstone"),
-        "USER": os.environ.get("DB_USER", "postgres"),
-        "PASSWORD": os.environ.get("DB_PASSWORD", ""),
+        "NAME": os.environ.get("DB_NAME", "voiceupdb"),
+        "USER": os.environ.get("DB_USER", "voiceupuser"),
+        "PASSWORD": os.environ.get("DB_PASSWORD", "StrongPassword123!"),
         "HOST": os.environ.get("DB_HOST", "localhost"),
         "PORT": os.environ.get("DB_PORT", "5432"),
     }

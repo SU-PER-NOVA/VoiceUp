@@ -1,6 +1,14 @@
+import json
+import os
 from django.core.management.base import BaseCommand
 from core.models import State, District, City, Category
 
+file_path = os.path.join(os.path.dirname(__file__), 'india_locations.json')
+
+with open(file_path, 'r', encoding='utf-8') as f:
+    INDIAN_STATES = json.load(f)
+
+"""
 # Indian States and major cities data
 INDIAN_STATES = {
     'Maharashtra': {
@@ -92,6 +100,7 @@ INDIAN_STATES = {
         }
     },
 }
+"""
 
 CATEGORIES = [
     {'name': 'Infrastructure', 'slug': 'infrastructure', 'description': 'Roads, bridges, buildings, and public infrastructure', 'icon': 'road', 'color': '#3B82F6'},
